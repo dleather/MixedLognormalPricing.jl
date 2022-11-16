@@ -1,0 +1,13 @@
+name = "MixedLognormalPricing"
+uuid = "e75de7ac-7fb6-4dfa-9cb4-c73e3a95ec17"
+authors = ["David Leather <leather@chapman.edu> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.8"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
