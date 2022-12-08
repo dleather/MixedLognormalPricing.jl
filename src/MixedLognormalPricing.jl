@@ -6,7 +6,6 @@ using Parameters
 using LinearAlgebra
 using Random
 using Statistics
-using StaticArrays
 using LogExpFunctions
 using LeatherMarkovChain
 using LeatherMSVAR
@@ -909,8 +908,8 @@ function compute_̄A_path!(acL_mat::Array{Float64}, acR_mat::Array{Float64},
                 acL_mat[n1,n,m] = 0.
                 acR_mat[n1,n,m] = 0.
             end
-            @inbounds for n1 = 1:S*N*N
-                @inbounds for k = 1:S*N*N
+            @inbounds for n1 = 1:S*N*N+S*N
+                @inbounds for k = 1:S*N*N+S*N
                     acL_mat[n1, n, m] += bL_mat[n1, k] * acL_mat[k, n, m-1]
                     acR_mat[n1, n, m] += bR_mat[n1, k] * acR_mat[k, n, m-1]
                 end
@@ -1039,6 +1038,53 @@ function approximate_price_mixture!(Q_path::Matrix{Float64},
     return sum(η_path, dims = 2), η_path
 end
 
+function approximate_price_gaussian!(Q_path::Matrix{Float64}, 
+    acL_mat::Array{Float64}, acR_mat::Array{Float64}, Nbar::Int64,
+    x::Vector{Float64}, δ::Vector{Float64},
+    tregime_probs::Vector{Matrix{Float64}}, msvar::MSVAR1)
+
+    @unpack S, N = msvar
+    #Compute Eₜ[xₜ + ⋯ + xₜ₊ₙ₋₁]
+    m1_path, q_path = compute_first_moms_mixture(Nbar, x, msvar)
+
+    #Compute Vₜ[xₜ + ⋯ + xₜ₊ₙ₋₁]
+    m2_path = compute_second_moms_mixture!(Q_path, acL_mat, acR_mat, Nbar, q_path,
+            msvar)
+
+    m1_tmp = zeros(Float64, N, S, Nbar)
+    m2_tmp = zeros(Float64, N, N, S, Nbar)
+    for n = 1:Nbar
+        m1_tmp[:,:,n] = reshape(m1_path[:,n], N, S)
+        m2_tmp[:,:,:,n] = reshape(m2_path[:,n], N, N, S)
+    end
+
+    m1 = zeros(Float64, N, Nbar, S)
+    m2 = zeros(Float64, N, N, Nbar, S)
+    for s0 = 1:S
+        for n = 1:Nbar
+            for s2 = 1:S
+                m1[:,n,s0] += m1_tmp[:,s2,n] * tregime_probs[s0][s2,n]
+                m2[:, :, n, s0] += m2_tmp[:, :, s2, n] * tregime_probs[s0][s2,n]
+            end
+        end
+    end
+
+
+    η_path = zeros(Float64, S, Nbar)
+    for s = 1:S
+        for n = 1:Nbar
+            η_path[s,n] = 
+                exp(δ' * m1[:,n,s] + 0.5 * δ' * 
+                    ( m2[:,:,n,s] - m1[:,n,s] * m1[:,n,s]' ) * δ)
+        end
+    end
+
+    Q = sum(η_path, dims = 2)
+
+    return Q, η_path, m1, m2
+    
+end
+
 export compute_Ex_path
 export compute_EΨ_path
 export compute_Vx_path
@@ -1069,5 +1115,6 @@ export compute_terminal_regime_probs
 export compute_first_moms_mixture
 export compute_second_moms_mixture!
 export approximate_price_mixture!
+export approximate_price_gaussian!
 
 end
