@@ -997,37 +997,37 @@ function approximate_price_mixture!(Q_path::Matrix{Float64},
 
     #For each s ∈ {1,…,S}: Compute Eₜ[sum of dicounted CFs)
     dcf_path = zeros(Float64, S, Nbar)
-    tmp_m1 = 0.0
-    tmp_m2 = 0.0
+    #tmp_m1 = 0.0
+    #tmp_m2 = 0.0
     @inbounds for s = 1:S
         @inbounds for n = 1:Nbar
-            #dcf_path[s, n] = 
-            #    exp( δ' * m1_path[1+(s-1)*N:s*N,n] + 0.5 * δ' * 
-            #        ( reshape(m2_path[1+(s-1)*N*N:s*N*N,n], 2, 2) - 
-            #        m1_path[1+(s-1)*N:s*N,n] * m1_path[1+(s-1)*N:s*N,n]' ) * δ )
-            tmp_m1 = 0.0 #δ' * m1_path[1+(s-1)*N:s*N,n]
-            @inbounds for n1 = 1:N
-                tmp_m1 += δ[n1] * m1_path[n1+(s-1)*N,n]
-            end
+            dcf_path[s, n] = 
+                exp( δ' * m1_path[1+(s-1)*N:s*N,n] + 0.5 * δ' * 
+                    ( reshape(m2_path[1+(s-1)*N*N:s*N*N,n], N, N) - 
+                    m1_path[1+(s-1)*N:s*N,n] * m1_path[1+(s-1)*N:s*N,n]' ) * δ )
+            #tmp_m1 = 0.0 #δ' * m1_path[1+(s-1)*N:s*N,n]
+            #@inbounds for n1 = 1:N
+            #    tmp_m1 += δ[n1] * m1_path[n1+(s-1)*N,n]
+            #end
 
-            tmp_m2 = 0.0
-            tmp_ndx = 1
-            @inbounds for n1 = 1:N
-                tmp_m2 += δ[n1]^2 * (m2_path[tmp_ndx+(s-1)*N*N,n] - 
-                    m1_path[n1+(s-1)*N,n]^2)
-                tmp_ndx += S + 1
-            end
+            ##tmp_m2 = 0.0
+            ##tmp_ndx = 1
+            #@inbounds for n1 = 1:N
+            #    tmp_m2 += δ[n1]^2 * (m2_path[tmp_ndx+(s-1)*N*N,n] - 
+            #        m1_path[n1+(s-1)*N,n]^2)
+            #    tmp_ndx += S + 1
+            #end
             
-            @inbounds for n1 = 1:N
-                @inbounds for n2 = N:-1:n1+1
-                    tmp_ndx = (n1 - 1)*N + n2
-                    tmp_m2 += 2 * δ[n1] * δ[n2] * ( 
-                        m2_path[tmp_ndx+(s-1)*N*N,n] - m1_path[n1+(s-1)*N,n] * 
-                        m1_path[n2+(s-1)*N,n] )
-                end
-            end
+            #@inbounds for n1 = 1:N
+            #    @inbounds for n2 = N:-1:n1+1
+            #        tmp_ndx = (n1 - 1)*N + n2
+            #        tmp_m2 += 2 * δ[n1] * δ[n2] * ( 
+            #            m2_path[tmp_ndx+(s-1)*N*N,n] - m1_path[n1+(s-1)*N,n] * 
+            #            m1_path[n2+(s-1)*N,n] )
+            #    end
+            #end
 
-            dcf_path[s, n] = exp(tmp_m1 + 0.5 * tmp_m2)
+            #dcf_path[s, n] = exp(tmp_m1 + 0.5 * tmp_m2)
         end
     end
 
