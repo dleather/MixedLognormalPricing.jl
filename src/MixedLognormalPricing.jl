@@ -972,7 +972,8 @@ function compute_second_moms_mixture!(Q_path::Matrix{Float64},
     BΦI = compute_BΦI(msvar)
     BIΦ = compute_BIΦ(msvar)
 
-    compute_̄Q_path!(Q_path, Nbar, q_path, zeros(S*N*N), Ξ, BΦμ, μμΣΣ, msvar)
+    compute_̄Q_path!(Q_path, Nbar, q_path,
+        repeat((q_path[1:N]*q_path[1:N]')[:], S), Ξ, BΦμ, μμΣΣ, msvar)
 
     A_path =  compute_̄A_path!(acL_mat, acR_mat, Nbar, q_path, Q_path, msvar, Iμ,
                 μI, BIΦ, BΦI)
