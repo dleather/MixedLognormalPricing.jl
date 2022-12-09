@@ -687,8 +687,8 @@ function compute_̄a_path(M::Int64, μ::Vector{Float64}, BΦ::Matrix{Float64},
 
     @inbounds for m = 2:M
         a_path[:, m] .= μtil #+ BΦtil * a_path[:, m-1]
-        @inbounds for n1 = 1:N*S*S
-            @inbounds for n2 = 1:N*S*S
+        @inbounds for n1 = 1:N*S*2
+            @inbounds for n2 = 1:N*S*2
                 a_path[n1, m] += BΦtil[n1, n2] * a_path[n2, m-1]
             end
         end
