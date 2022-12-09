@@ -936,7 +936,7 @@ function compute_terminal_regime_probs(M::Int64,msvar::MSVAR1)
             #out_vec[s][:, m] = P * out_vec[s][:, m-1]
             @inbounds for s1 = 1:S
                 @inbounds for s2 = 1:S
-                    out_vec[s][s1, m] += P[s1, s2] * out_vec[s][s2, m-1]
+                    out_vec[s][s1, m] += P[s2, s1] * out_vec[s][s2, m-1]
                 end
             end
         end
